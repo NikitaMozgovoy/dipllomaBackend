@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
+import mozgovoy.nikita.diploma.model.ERole;
 
 import java.util.Set;
 
@@ -19,8 +20,6 @@ public class SignupRequest {
     @Size(max = 50)
     @Email
     private String email;
-
-    private Set<String> role;
 
     @NotBlank
     @Size(min = 6, max = 40)

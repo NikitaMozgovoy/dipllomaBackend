@@ -13,7 +13,7 @@ public interface UserRepo extends JpaRepository<UserModel, Long> {
 
     UserModel findUserById(Long id);
 
-    Optional<UserModel> findUserByUsername(String username);
+    UserModel findUserByUsername(String username);
 
     Optional<UserModel> findCustomUserByEmail(String email);
 

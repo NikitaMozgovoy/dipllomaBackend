@@ -21,7 +21,7 @@ public class Review implements Serializable {
     private Film film;
     private String text;
 
-    @OneToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "author_id")
     private UserModel author;
 }
