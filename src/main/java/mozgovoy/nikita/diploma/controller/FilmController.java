@@ -1,6 +1,8 @@
 package mozgovoy.nikita.diploma.controller;
 
 import jakarta.transaction.Transactional;
+import mozgovoy.nikita.diploma.dto.FilmDTO;
+import mozgovoy.nikita.diploma.dto.ReviewDTO;
 import mozgovoy.nikita.diploma.model.Film;
 import mozgovoy.nikita.diploma.model.Film;
 import mozgovoy.nikita.diploma.repository.FilmRepo;
@@ -11,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @CrossOrigin(origins = {"http://localhost:4200"})
@@ -24,18 +27,21 @@ public class FilmController {
     }
 
     @GetMapping("")
-    public ResponseEntity<List<Film>> getAllFilms(){
-        return new ResponseEntity<>(filmService.findAllFilms(), HttpStatus.OK);
+    public ResponseEntity<List<FilmDTO>> getAllFilms(){
+        List<FilmDTO> films = filmService.findAllFilms().stream()
+                .map(FilmDTO:: new)
+                .collect(Collectors.toList());
+        return new ResponseEntity<>(films, HttpStatus.OK);
     }
 
     @GetMapping("/find/{id}")
-    public ResponseEntity<Film> getFilmById(@PathVariable("id") Long id){
-        Film film = filmService.findFilmById(id);
+    public ResponseEntity<FilmDTO> getFilmById(@PathVariable("id") Long id){
+        FilmDTO film = new FilmDTO(filmService.findFilmById(id));
         return new ResponseEntity<>(film, HttpStatus.OK);
     }
 
     @PostMapping("/add")
-    public ResponseEntity<Film> addUser(@RequestBody Film user){
+    public ResponseEntity<Film> addFilm(@RequestBody Film user){
         Film newFilm = filmService.addFilm(user);
         return new ResponseEntity<>(newFilm, HttpStatus.CREATED);
     }
@@ -54,8 +60,8 @@ public class FilmController {
     }
 
     @GetMapping("/{url}")
-    public ResponseEntity<Film> getFilmByUrl(@PathVariable("url") String filmUrl){
-        Film film = filmService.findFilmByUrl(filmUrl);
+    public ResponseEntity<FilmDTO> getFilmByUrl(@PathVariable("url") String filmUrl){
+        FilmDTO film = new FilmDTO(filmService.findFilmByUrl(filmUrl));
         return new ResponseEntity<>(film, HttpStatus.OK);
     }
 

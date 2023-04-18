@@ -67,7 +67,7 @@ public class WebSecurityConfig{
         http.cors().and().csrf().disable()
                 .exceptionHandling().authenticationEntryPoint(unauthorizedHandler).and()
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
-                .authorizeHttpRequests().requestMatchers("/auth/**", "/films/**").permitAll()
+                .authorizeHttpRequests().requestMatchers("/auth/**", "/**").permitAll()
                 .requestMatchers("/test/**").permitAll()
                 .anyRequest().authenticated();
 

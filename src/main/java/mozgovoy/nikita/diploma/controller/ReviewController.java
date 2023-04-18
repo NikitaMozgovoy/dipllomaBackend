@@ -1,6 +1,7 @@
 package mozgovoy.nikita.diploma.controller;
 
 import jakarta.transaction.Transactional;
+import mozgovoy.nikita.diploma.dto.ReviewDTO;
 import mozgovoy.nikita.diploma.model.Film;
 import mozgovoy.nikita.diploma.model.Review;
 import mozgovoy.nikita.diploma.model.Review;
@@ -13,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @CrossOrigin(origins = {"http://localhost:4200"})
@@ -59,7 +61,10 @@ public class ReviewController {
     }
 
     @GetMapping("/{filmId}")
-    public ResponseEntity<List<Review>> getFilmReviews(@PathVariable("filmId") Long filmId){
-        return new ResponseEntity<>(reviewService.findReviewsByFilm(filmId), HttpStatus.OK);
+    public ResponseEntity<List<ReviewDTO>> getFilmReviews(@PathVariable("filmId") Long filmId){
+        List<ReviewDTO> reviews = reviewService.findReviewsByFilm(filmId).stream()
+                .map(ReviewDTO:: new)
+                .collect(Collectors.toList());
+        return new ResponseEntity<>(reviews, HttpStatus.OK);
     }
 }
