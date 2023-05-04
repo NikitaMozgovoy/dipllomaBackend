@@ -1,55 +1,70 @@
 package mozgovoy.nikita.diploma.service;
 
-import mozgovoy.nikita.diploma.exception.FilmNotFoundException;
-import mozgovoy.nikita.diploma.model.Film;
-import mozgovoy.nikita.diploma.repository.FilmRepo;
-import org.springframework.beans.factory.annotation.Autowired;
+import mozgovoy.nikita.diploma.dto.FilmDTO;
+import mozgovoy.nikita.diploma.dto.FilmsListDTO;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import org.json.JSONObject;
+
 @Service
 public class FilmService {
-    private final FilmRepo filmRepo;
 
-    @Autowired
-    public FilmService(FilmRepo filmRepo) {
-        this.filmRepo = filmRepo;
-    }
+    @Value("${kinopoisk.api.key}")
+    private String apiKey;
 
-    public Film addFilm(Film film){
-        return filmRepo.save(film);
-    }
+    private String apiUrl = "https://api.kinopoisk.dev/v1.3/movie";
 
-    public List<Film> findAllFilms(){
-        return filmRepo.findAll();
-    }
+    private JSONObject getApiResponse(String urlString) throws IOException {
+        HttpClient client = HttpClient.newHttpClient();
+        HttpRequest request = HttpRequest.newBuilder().
+                uri(URI.create(urlString))
+                .header("accept","application/json")
+                .header("X-API-KEY", apiKey)
+                .build();
 
-    public Film updateFilm(Film film, Long id){
-        Film updatedFilm = filmRepo.findFilmById(id);
-        updatedFilm.setCountry(film.getCountry());
-        updatedFilm.setName(film.getName());
-        updatedFilm.setDirector(film.getDirector());
-        updatedFilm.setYear(film.getYear());
-        updatedFilm.setGenres(film.getGenres());
-        updatedFilm.setUrl(film.getUrl());
-        return filmRepo.save(updatedFilm);
-    }
-
-    public void deleteFilm(Long id){
-        filmRepo.deleteById(id);
-    }
-
-    public Film findFilmById(Long id){
-        try{
-            return filmRepo.findFilmById(id);
+        HttpResponse<String> response = null;
+        try {
+            response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         }
-        catch (Exception e){
-            throw new FilmNotFoundException("Film by id " + id + "wasn't found");
+
+        return new JSONObject(response.body());
+    }
+
+    public List<FilmsListDTO> findAllFilms(int page){
+            String urlString = apiUrl + "?selectFields=id&selectFields=name&selectFields=year&selectFields=persons.profession&selectFields=persons.name&selectFields=countries&selectFields=poster&selectFields=movieLength&selectFields=genres&selectFields=type&selectFields=description&limit=10";
+            urlString += ("&page=" + page);
+        try {
+            return new FilmsListDTO().fillTheData(getApiResponse(urlString));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 
-    public Film findFilmByUrl(String url){
-        return filmRepo.findFilmByUrl(url);
+    public List<FilmsListDTO> getSearchResults(String name, int page) {
+            String urlString = apiUrl + "?selectFields=id&selectFields=name&selectFields=year&selectFields=persons.profession&selectFields=persons.name&limit=10";
+            urlString += ("&name=" + name + "&page=" + page);
+        try {
+            return new FilmsListDTO().fillTheData(getApiResponse(urlString));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public FilmDTO getFilmById(Long id){
+        try {
+            return new FilmDTO().fillTheData(getApiResponse(apiUrl + "/" + id), getApiResponse(("https://api.kinopoisk.dev/v1/review?page=1&limit=5&movieId=" + id)));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

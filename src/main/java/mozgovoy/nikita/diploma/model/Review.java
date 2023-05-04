@@ -15,10 +15,6 @@ public class Review implements Serializable {
     @GeneratedValue
     private Long id;
 
-    @JsonIdentityReference
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "film_id")
-    private Film film;
     private String text;
 
     @JsonIdentityReference

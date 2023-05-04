@@ -1,7 +1,6 @@
 package mozgovoy.nikita.diploma.repository;
 
 import mozgovoy.nikita.diploma.model.UserModel;
-import mozgovoy.nikita.diploma.model.Film;
 import mozgovoy.nikita.diploma.model.Review;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -13,7 +12,7 @@ public interface ReviewRepo extends JpaRepository<Review, Long> {
 
     Review findReviewById(Long id);
 
-    List<Review> findReviewsByFilm(Film film);
+//    List<Review> findReviewsByFilm(Film film);
 
     List<Review> findReviewByAuthor(UserModel user);
 
