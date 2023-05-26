@@ -3,8 +3,9 @@ package mozgovoy.nikita.diploma.payload.response;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
-import mozgovoy.nikita.diploma.model.ERole;
+import mozgovoy.nikita.diploma.dto.LocalReviewDTO;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -16,14 +17,14 @@ public class JwtResponse {
     private Long id;
     private String username;
     private String email;
-    private ERole role;
+    private List<LocalReviewDTO> reviews = new ArrayList();
 
-    public JwtResponse(String accessToken, Long id, String username, String email, ERole role) {
+    public JwtResponse(String accessToken, Long id, String username, String email, List<LocalReviewDTO> reviews){
         this.accessToken = accessToken;
         this.id = id;
         this.username = username;
         this.email = email;
-        this.role = role;
+        this.reviews = reviews;
     }
 
 }

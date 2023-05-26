@@ -36,7 +36,6 @@ public class UserModelController {
     @PostMapping("/add")
     public ResponseEntity<UserModel> addUser(@RequestBody UserModel user){
         UserModel newUser = userModelServiceImpl.addUser(user);
-        System.out.println(newUser);
         return new ResponseEntity<>(newUser, HttpStatus.CREATED);
     }
 

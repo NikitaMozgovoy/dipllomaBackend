@@ -28,7 +28,6 @@ public class UserModel implements Serializable, UserDetails {
 
     private String password;
 
-    private ERole role;
 
     @OneToMany(mappedBy = "author")
     private List<Review> reviews;
@@ -51,7 +50,7 @@ public class UserModel implements Serializable, UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return Collections.singleton(new SimpleGrantedAuthority(role.toString()));
+        return Collections.singleton(new SimpleGrantedAuthority("user"));
     }
 
     @Override

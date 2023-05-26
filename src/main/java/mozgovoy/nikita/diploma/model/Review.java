@@ -14,8 +14,9 @@ public class Review implements Serializable {
     @Id
     @GeneratedValue
     private Long id;
-
+    private Long filmId;
     private String text;
+    private Integer rating;
 
     @JsonIdentityReference
     @ManyToOne(fetch = FetchType.EAGER)

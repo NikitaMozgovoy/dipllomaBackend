@@ -1,23 +1,37 @@
 package mozgovoy.nikita.diploma.dto;
 
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import mozgovoy.nikita.diploma.model.Review;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 
+@NoArgsConstructor
 @Data
 public class LocalReviewDTO implements Serializable {
-    private String id;
+    private Long id;
+    private Long filmId;
     private ReviewAuthorDTO author;
     private String text;
-//    private LocalDateTime dateTime;
+    private Integer rating;
 
     public LocalReviewDTO(Review review) {
-//        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
-//        this.dateTime=LocalDateTime.now();
         this.text=review.getText();
+        this.id=review.getId();
+        this.filmId= review.getFilmId();
         this.author=new ReviewAuthorDTO(review.getAuthor());
+        this.rating = review.getRating();
+    }
+
+    static public List<LocalReviewDTO> getDTOArray(List<Review> reviews){
+        List<LocalReviewDTO> results = new ArrayList<>();
+        for (Review item : reviews) {
+            results.add(new LocalReviewDTO(item));
+        }
+        return results;
     }
 }

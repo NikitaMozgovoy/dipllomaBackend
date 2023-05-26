@@ -7,6 +7,7 @@ import org.json.JSONObject;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Data
 public class FilmsListDTO implements Serializable {
@@ -14,7 +15,7 @@ public class FilmsListDTO implements Serializable {
     private String name;
     private Integer year;
     private Object countries;
-    private Object poster;
+    private String posterUrl;
     private Object genres;
     private String type;
     private String description;
@@ -24,7 +25,16 @@ public class FilmsListDTO implements Serializable {
         Gson gson = new Gson();
         List<FilmsListDTO> results = new ArrayList<>();
         for (Object object : json.getJSONArray("docs")) {
-            results.add(gson.fromJson(String.valueOf(object), FilmsListDTO.class));
+            FilmsListDTO item = gson.fromJson(String.valueOf(object), FilmsListDTO.class);
+            JSONObject jsonObject = (JSONObject) object;
+            Map<String, String> itemPoster = (Map<String, String>) jsonObject.toMap().get("poster");
+            if (itemPoster != null){
+                item.posterUrl = itemPoster.get("previewUrl");
+            }
+            else {
+                item.posterUrl = "https://yastatic.net/s3/kinopoisk-frontend/common-static/img/projector-logo/placeholder.svg";
+            }
+            results.add(item);
         }
         return results;
     }

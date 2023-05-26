@@ -1,14 +1,12 @@
 package mozgovoy.nikita.diploma.controller;
 
 import jakarta.validation.Valid;
-import mozgovoy.nikita.diploma.model.ERole;
-import mozgovoy.nikita.diploma.model.Role;
+import mozgovoy.nikita.diploma.dto.UserDTO;
 import mozgovoy.nikita.diploma.model.UserModel;
 import mozgovoy.nikita.diploma.payload.request.LoginRequest;
 import mozgovoy.nikita.diploma.payload.request.SignupRequest;
 import mozgovoy.nikita.diploma.payload.response.JwtResponse;
 import mozgovoy.nikita.diploma.payload.response.MessageResponse;
-import mozgovoy.nikita.diploma.repository.RoleRepo;
 import mozgovoy.nikita.diploma.repository.UserRepo;
 import mozgovoy.nikita.diploma.security.jwt.JwtUtils;
 import mozgovoy.nikita.diploma.service.UserModelServiceImpl;
@@ -34,9 +32,6 @@ public class AuthController {
     UserModelServiceImpl userModelServiceImpl;
 
     @Autowired
-    RoleRepo roleRepo;
-
-    @Autowired
     UserRepo userRepo;
 
     @Autowired
@@ -55,13 +50,13 @@ public class AuthController {
 
         String jwt = jwtUtils.generateJwtToken(loginRequest.getUsername());
 
-        UserModel user = (UserModel) userModelServiceImpl.loadUserByUsername(jwtUtils.getUserNameFromJwtToken(jwt));
+        UserDTO user = new UserDTO((UserModel) userModelServiceImpl.loadUserByUsername(jwtUtils.getUserNameFromJwtToken(jwt)));
 
         return ResponseEntity.ok(new JwtResponse(jwt,
                 user.getId(),
                 user.getUsername(),
                 user.getEmail(),
-                user.getRole()));
+                user.getReviews()));
     }
 
     @PostMapping("/signup")
@@ -83,7 +78,6 @@ public class AuthController {
                 signUpRequest.getEmail(),
                 encoder.encode(signUpRequest.getPassword()));
 
-        user.setRole(ERole.ROLE_USER);
         userRepo.save(user);
 
         return ResponseEntity.ok(new MessageResponse("User registered successfully!"));

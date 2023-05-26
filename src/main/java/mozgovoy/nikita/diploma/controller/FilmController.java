@@ -23,8 +23,8 @@ public class FilmController {
 
 
     @GetMapping("/page/{page}")
-    public ResponseEntity<List<FilmsListDTO>> getAllFilms(@PathVariable("page") int pageNumber){
-        return new ResponseEntity<>(filmService.findAllFilms(pageNumber), HttpStatus.OK);
+    public ResponseEntity<List<FilmsListDTO>> getAllFilms(@PathVariable("page") int pageNumber, @RequestParam("limit") int limit){
+        return new ResponseEntity<>(filmService.findAllFilms(limit, pageNumber), HttpStatus.OK);
     }
 
     @GetMapping("/{id}")
@@ -34,8 +34,8 @@ public class FilmController {
 
     @GetMapping("/search")
     public ResponseEntity<List<FilmsListDTO>> getSearchResults(@RequestParam("query") String query, @RequestParam("page")
-                                                          int page){
-        return new ResponseEntity<>(filmService.getSearchResults(query, page), HttpStatus.OK);
+                                                          int page, @RequestParam("limit") int limit){
+        return new ResponseEntity<>(filmService.getSearchResults(query, limit, page), HttpStatus.OK);
     }
 
 }
