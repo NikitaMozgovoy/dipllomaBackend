@@ -1,15 +1,13 @@
 package mozgovoy.nikita.diploma.controller;
 
 import jakarta.validation.Valid;
-import mozgovoy.nikita.diploma.dto.UserDTO;
 import mozgovoy.nikita.diploma.model.UserModel;
 import mozgovoy.nikita.diploma.payload.request.LoginRequest;
 import mozgovoy.nikita.diploma.payload.request.SignupRequest;
 import mozgovoy.nikita.diploma.payload.response.JwtResponse;
 import mozgovoy.nikita.diploma.payload.response.MessageResponse;
-import mozgovoy.nikita.diploma.repository.UserRepo;
 import mozgovoy.nikita.diploma.security.jwt.JwtUtils;
-import mozgovoy.nikita.diploma.service.UserModelServiceImpl;
+import mozgovoy.nikita.diploma.service.UserModelService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -25,49 +23,51 @@ import org.springframework.web.bind.annotation.*;
 @CrossOrigin(origins = {"http://localhost:4200"})
 @RequestMapping("/auth")
 public class AuthController {
-    @Autowired
+    final
     AuthenticationManager authenticationManager;
-
-    @Autowired
-    UserModelServiceImpl userModelServiceImpl;
-
-    @Autowired
-    UserRepo userRepo;
-
-    @Autowired
+    final
+    UserModelService userModelService;
+    final
     PasswordEncoder encoder;
+    final
+    JwtUtils jwtUtils;
 
     @Autowired
-    JwtUtils jwtUtils;
+    public AuthController(AuthenticationManager authenticationManager, UserModelService userModelService, PasswordEncoder encoder, JwtUtils jwtUtils) {
+        this.authenticationManager = authenticationManager;
+        this.userModelService = userModelService;
+        this.encoder = encoder;
+        this.jwtUtils = jwtUtils;
+    }
 
     @PostMapping("/signin")
     public ResponseEntity<?> authenticateUser(@Validated @RequestBody LoginRequest loginRequest){
 
+        System.out.println(loginRequest);
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
+
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         String jwt = jwtUtils.generateJwtToken(loginRequest.getUsername());
 
-        UserDTO user = new UserDTO((UserModel) userModelServiceImpl.loadUserByUsername(jwtUtils.getUserNameFromJwtToken(jwt)));
-
+        UserModel user = (UserModel) userModelService.loadUserByUsername(jwtUtils.getUserNameFromJwtToken(jwt));
         return ResponseEntity.ok(new JwtResponse(jwt,
                 user.getId(),
                 user.getUsername(),
-                user.getEmail(),
-                user.getReviews()));
+                user.getEmail()));
     }
 
     @PostMapping("/signup")
     public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signUpRequest) {
-        if (userRepo.existsByUsername(signUpRequest.getUsername())) {
+        if (userModelService.existsByUsername((signUpRequest.getUsername()))) {
             return ResponseEntity
                     .badRequest()
                     .body(new MessageResponse("Error: Username is already taken!"));
         }
 
-        if (userRepo.existsByEmail(signUpRequest.getEmail())) {
+        if (userModelService.existsByEmail(signUpRequest.getEmail())) {
             return ResponseEntity
                     .badRequest()
                     .body(new MessageResponse("Error: Email is already in use!"));
@@ -78,7 +78,7 @@ public class AuthController {
                 signUpRequest.getEmail(),
                 encoder.encode(signUpRequest.getPassword()));
 
-        userRepo.save(user);
+        userModelService.saveUser(user);
 
         return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
     }

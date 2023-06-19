@@ -1,5 +1,6 @@
 package mozgovoy.nikita.diploma.service;
 
+import lombok.Setter;
 import mozgovoy.nikita.diploma.dto.LocalReviewDTO;
 import mozgovoy.nikita.diploma.exception.ReviewNotFoundException;
 import mozgovoy.nikita.diploma.model.Review;
@@ -10,16 +11,18 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
-public class LocalReviewService {
+@Setter
+public class LocalReviewsService {
     private final ReviewRepo reviewRepo;
-    private final UserModelServiceImpl userModelService;
+    private final UserModelService userModelService;
+
+    private Integer page = 1;
 
     @Autowired
-    public LocalReviewService(ReviewRepo reviewRepo, UserModelServiceImpl userModelService) {
+    public LocalReviewsService(ReviewRepo reviewRepo, UserModelService userModelService) {
         this.reviewRepo = reviewRepo;
         this.userModelService = userModelService;
     }
@@ -29,14 +32,16 @@ public class LocalReviewService {
         review.setFilmId(filmId);
         review.setText(reviewDTO.getText());
         review.setAuthor(userModelService.findUserById(reviewDTO.getAuthor().getId()));
+        review.setRating(reviewDTO.getRating());
         reviewRepo.save(review);
         return new LocalReviewDTO(review);
     }
 
 
     public LocalReviewDTO updateReview(LocalReviewDTO review, Long id){
-        Review updatedReview = reviewRepo.findReviewById(id);
+        Review updatedReview = findReviewById(id);
         updatedReview.setText(review.getText());
+        updatedReview.setRating(review.getRating());
         reviewRepo.save(updatedReview);
         return new LocalReviewDTO(updatedReview);
     }
@@ -54,8 +59,8 @@ public class LocalReviewService {
         }
     }
 
-    public List<LocalReviewDTO> findFilmReviews(Long filmId, Integer page){
-        Pageable pageable = PageRequest.of(page-1, 5);
+    public List<LocalReviewDTO> getFilmReviews(Long filmId){
+        Pageable pageable = PageRequest.of(this.page-1, 5);
         Page<Review> reviews = reviewRepo.findReviewsByFilmId(filmId, pageable);
         List<Review> listOfReviews = reviews.getContent();
         List<LocalReviewDTO> content = LocalReviewDTO.getDTOArray(listOfReviews);
@@ -63,4 +68,18 @@ public class LocalReviewService {
         return content;
     }
 
+    public Integer getReviewsPagesQuantity(Long filmId){
+        Integer num = reviewRepo.findAllByFilmId(filmId).size();
+        return (int) ((num + 5 - 1 ) /5);
+    }
+
+    public LocalReviewDTO getUsersFilmReview(Long filmId, Long userId){
+        Review res = reviewRepo.findReviewByFilmIdAndAuthorId(filmId, userId);
+        if(res!=null) {
+            return new LocalReviewDTO(res);
+        }
+        else{
+            return null;
+        }
+    }
 }

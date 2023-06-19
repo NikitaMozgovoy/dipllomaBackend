@@ -8,16 +8,10 @@ import java.util.Optional;
 
 @Repository
 public interface UserRepo extends JpaRepository<UserModel, Long> {
-
-    void deleteUserById(Long id);
-
-    UserModel findUserById(Long id);
-
-    UserModel findUserByUsername(String username);
-
-    Optional<UserModel> findCustomUserByEmail(String email);
-
+    void deleteUserModelById(Long id);
+    UserModel findUserModelById(Long id);
+    UserModel findUserModelByUsername(String username);
+    UserModel findUserModelByEmail(String email);
     boolean existsByUsername(String username);
-
     boolean existsByEmail(String email);
 }

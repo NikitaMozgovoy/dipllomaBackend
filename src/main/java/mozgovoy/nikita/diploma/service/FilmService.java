@@ -25,16 +25,17 @@ public class FilmService {
 
     private String apiUrl = "https://api.kinopoisk.dev/v1.3/movie";
 
-    private LocalReviewService localReviewService;
+    private String queryParams = "?selectFields=id&selectFields=name&selectFields=alternativeName&selectFields=year&selectFields=persons.profession&selectFields=persons.name&selectFields=countries&selectFields=poster&selectFields=movieLength&selectFields=genres&selectFields=type&selectFields=shortDescription&selectFields=rating";
+    private LocalReviewsService localReviewsService;
     private ExternalReviewsService externalReviewsService;
 
     @Autowired
-    public FilmService(LocalReviewService localReviewService, ExternalReviewsService externalReviewsService) {
-        this.localReviewService = localReviewService;
+    public FilmService(LocalReviewsService localReviewsService, ExternalReviewsService externalReviewsService) {
+        this.localReviewsService = localReviewsService;
         this.externalReviewsService = externalReviewsService;
     }
 
-    private JSONObject getApiResponse(String urlString) throws IOException {
+    private JSONObject getApiResponse(String urlString){
         HttpClient client = HttpClient.newHttpClient();
         HttpRequest request = HttpRequest.newBuilder().
                 uri(URI.create(urlString))
@@ -45,47 +46,48 @@ public class FilmService {
         HttpResponse<String> response = null;
         try {
             response = client.send(request, HttpResponse.BodyHandlers.ofString());
-        } catch (InterruptedException e) {
+        } catch (InterruptedException | IOException e) {
             throw new RuntimeException(e);
         }
 
         return new JSONObject(response.body());
     }
 
-    public List<FilmsListDTO> findAllFilms(int limit, int page){
-            String urlString = apiUrl + "?selectFields=id&selectFields=name&selectFields=alternativeName&selectFields=year&selectFields=persons.profession&selectFields=persons.name&selectFields=countries&selectFields=poster&selectFields=movieLength&selectFields=genres&selectFields=type&selectFields=description";
-            urlString += ("&page=" + page + "&limit=" + limit);
-        try {
-            return new FilmsListDTO().fillTheData(getApiResponse(urlString));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public List<FilmsListDTO> getSearchResults(String query, int limit, int page) {
-            String urlString = apiUrl + "?selectFields=id&selectFields=name&selectFields=alternativeName&selectFields=year&selectFields=persons.profession&selectFields=persons.name&selectFields=countries&selectFields=poster&selectFields=movieLength&selectFields=genres&selectFields=type&selectFields=description";
+    public List<FilmsListDTO> getSearchResults(String query, Integer limit, Integer page) {
+            String urlString = apiUrl + queryParams;
             urlString += (query+ "&page=" + page + "&limit=" + limit);
-        try {
-            return new FilmsListDTO().fillTheData(getApiResponse(urlString));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        return new FilmsListDTO().fillTheData(getApiResponse(urlString));
     }
 
     public FilmDTO getFilmById(Long id){
-        try {
-            FilmDTO result = new FilmDTO().fillTheData(getApiResponse(apiUrl + "/" + id));
-            result.setKinopoiskReviews(externalReviewsService.getKinopoiskReviews(result.getId(), 1));
-            if (result.getTmdbId()!=null) {
-                result.setTmdbReviews(externalReviewsService.getTmdbReviews(result.getTmdbId(), 1));
-            }
-            else{
-                result.setTmdbReviews(null);
-            }
-            result.setLocalReviews(localReviewService.findFilmReviews(result.getId(), 1));
-            return result;
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        FilmDTO result = new FilmDTO().fillTheData(getApiResponse(apiUrl + "/" + id));
+        result.setKinopoiskReviews(externalReviewsService.getKinopoiskReviews(result.getId()));
+        if (result.getTmdbId()!=null) {
+            result.setTmdbReviews(externalReviewsService.getTmdbReviews(result.getTmdbId()));
         }
+        else{
+            result.setTmdbReviews(null);
+        }
+        List<LocalReviewDTO> localReviews = localReviewsService.getFilmReviews(result.getId());
+        result.setLocalReviews(localReviews);
+        double sum=0;
+        for(LocalReviewDTO review:localReviews){
+            if(review.getRating()!=null) {
+                sum += review.getRating();
+            }
+        }
+        if (sum==0){
+            result.setLocalRating(null);
+        }
+        else result.setLocalRating(sum/localReviews.size());
+        return result;
+    }
+
+    public Integer getFilmsPagesQuantity(String query, Integer limit){
+        String urlString = apiUrl + queryParams + "&limit=" + limit;
+        if (query!=null){
+            urlString+=query;
+        }
+        return (Integer) getApiResponse(urlString).toMap().get("pages");
     }
 }
